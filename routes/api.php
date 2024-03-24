@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\PasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,10 +17,11 @@ use App\Http\Controllers\AuthController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware('auth')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Rutas de jwt-auth
 Route::group([
 
     'middleware' => 'api',
@@ -32,3 +35,10 @@ Route::group([
     Route::post('me', [AuthController::class, 'me']);
 
 });
+
+// ruta para que el super admin cree nuevos usuarios
+Route::middleware('require_super_admin')->post('/create-user', [UserController::class, 'create']);
+
+// rutas de reestablecimiento de passwords
+Route::post('forgot-password', [PasswordController::class, 'forgotPassword']);
+Route::post('update-password', [PasswordController::class, 'updatePassword']);
