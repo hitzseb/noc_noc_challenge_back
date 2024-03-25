@@ -44,7 +44,7 @@ class TaskController extends Controller
     public function show(string $id)
     {
         // Recuperar la tarea con sus archivos adjuntos cargados
-        $task = Task::with('attachments')->findOrFail($id);
+        $task = Task::with(['attachments', 'comments'])->findOrFail($id);
 
         return $task;
     }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('content');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('task_id')->constrained()->onDelete('cascade');
         });
     }
 

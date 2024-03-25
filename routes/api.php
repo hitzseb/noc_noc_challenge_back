@@ -8,6 +8,7 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +57,9 @@ Route::middleware('auth')->get('/all-tasks', [TaskController::class, 'index']);
 Route::middleware('auth')->get('/tasks/{id}', [TaskController::class, 'show']);
 Route::middleware('auth')->put('/tasks/{id}/update-status', [TaskController::class, 'updateStatus']);
 Route::middleware('require_super_admin')->get('/generate-report', [TaskController::class, 'generateReport']);
+
+// Rutas para comments
+Route::middleware('auth')->post('/tasks/{id}/comment', [CommentController::class, 'store']);
 
 // Ruta para la carga/descarga de archivos
 Route::post('/tasks/{id}/attach', [AttachmentController::class, 'store']);

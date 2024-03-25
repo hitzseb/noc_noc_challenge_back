@@ -14,6 +14,7 @@ class Comment extends Model
     protected $fillable = [
         'content',
         'user_id',
+        'task_id',
     ];
 
     // Relación inversa: muchos comentarios pertenecen a una tarea

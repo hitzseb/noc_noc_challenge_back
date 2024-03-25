@@ -39,7 +39,7 @@ class Task extends Model
     // Relación con los comentarios de la tarea
     public function comments()
     {
-        return $this->hasMany(TaskComment::class);
+        return $this->hasMany(Comment::class);
     }
 
     // Relación con los archivos adjuntos
