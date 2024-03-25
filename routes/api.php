@@ -55,6 +55,7 @@ Route::middleware('auth')->get('/my-tasks', [TaskController::class, 'userTasks']
 Route::middleware('auth')->get('/all-tasks', [TaskController::class, 'index']);
 Route::middleware('auth')->get('/tasks/{id}', [TaskController::class, 'show']);
 Route::middleware('auth')->put('/tasks/{id}/update-status', [TaskController::class, 'updateStatus']);
+Route::middleware('require_super_admin')->get('/generate-report', [TaskController::class, 'generateReport']);
 
 // Ruta para la carga/descarga de archivos
 Route::post('/tasks/{id}/attach', [AttachmentController::class, 'store']);

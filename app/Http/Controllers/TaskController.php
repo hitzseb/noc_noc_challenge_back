@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Task;
+use Barryvdh\DomPDF\Facade as PDF;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
 
 class TaskController extends Controller
 {
@@ -87,5 +91,26 @@ class TaskController extends Controller
 
         // Devolver la tarea actualizada
         return $task;
+    }
+
+    public function generateReport(Request $request)
+    {
+        // Filtrar tareas por fecha
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $tasks = Task::whereBetween('completed_at', [$startDate, $endDate])->get();
+
+        // Preparar datos para el PDF
+        $data = [
+            'tasks' => $tasks,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ];
+
+        // Generar el PDF a partir de la vista Blade
+        $pdf = \PDF::loadView('pdf.tasks', $data);
+
+        // Descargar el PDF
+        return $pdf->download('tasks_report.pdf');
     }
 }

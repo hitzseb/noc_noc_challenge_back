@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Attachment;
+use App\Models\User;
 
 class Task extends Model
 {
@@ -30,9 +31,9 @@ class Task extends Model
     }
 
     // Relación con el empleado asignado
-    public function employee()
+    public function user()
     {
-        return $this->belongsTo(Employee::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Relación con los comentarios de la tarea
