@@ -14,10 +14,16 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
 
-        \App\Models\User::factory()->create([
-            'name' => 'Test Super Admin',
-            'email' => 'test@example.com',
-            'role' => 'super_admin',
-        ]);
+        // \App\Models\User::factory()->create([
+        //     'name' => 'Test Super Admin',
+        //     'email' => 'test@example.com',
+        //     'role' => 'super_admin',
+        // ]);
+
+        // Crear registros de status
+        // \App\Models\Status::create(['status' => 'Pendiente']);
+        // \App\Models\Status::create(['status' => 'En proceso']);
+        // \App\Models\Status::create(['status' => 'Bloqueado']);
+        // \App\Models\Status::create(['status' => 'Completado']);
     }
 }

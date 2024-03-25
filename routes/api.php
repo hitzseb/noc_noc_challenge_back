@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\StatusController;
+use App\Http\Controllers\AttachmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,9 +20,9 @@ use App\Http\Controllers\PasswordController;
 |
 */
 
-Route::middleware('auth')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
 // Rutas de jwt-auth
 Route::group([
@@ -42,3 +45,18 @@ Route::middleware('require_super_admin')->post('/create-user', [UserController::
 // rutas de reestablecimiento de passwords
 Route::post('forgot-password', [PasswordController::class, 'forgotPassword']);
 Route::post('update-password', [PasswordController::class, 'updatePassword']);
+
+// Rutas de status
+Route::get('/status', [StatusController::class, 'index']);
+
+// Rutas para tasks
+Route::middleware('require_super_admin')->post('/create-task', [TaskController::class, 'store']);
+Route::middleware('auth')->get('/my-tasks', [TaskController::class, 'userTasks']);
+Route::middleware('auth')->get('/all-tasks', [TaskController::class, 'index']);
+Route::middleware('auth')->get('/tasks/{id}', [TaskController::class, 'show']);
+Route::middleware('auth')->put('/tasks/{id}/update-status', [TaskController::class, 'updateStatus']);
+
+// Ruta para la carga/descarga de archivos
+Route::post('/tasks/{id}/attach', [AttachmentController::class, 'store']);
+Route::get('/download/{filename}', [AttachmentController::class, 'download'])->name('attachment.download');
+Route::middleware('auth')->delete('/attachments/{id}/delete', [AttachmentController::class, 'deleteAttachment']);

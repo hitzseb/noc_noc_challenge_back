@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\User;
+use App\Models\Token;
 use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
@@ -32,6 +33,11 @@ class UserController extends Controller
             'email' => $request->input('email'),
             'password' => bcrypt(Str::random(8)),
             'role' => 'user',
+        ]);
+
+        Token::create([
+            'token' => $token,
+            'user_id' => $user->id
         ]);
 
         // Enviar email de bienvenida con token e instrucciones
