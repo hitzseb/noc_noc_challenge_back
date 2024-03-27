@@ -13,7 +13,10 @@ class AttachmentController extends Controller
 {
     public function store(Request $request, string $id)
     {
-        // Validar la solicitud de carga de archivos
+        // Obtiene el usuario autenticado
+        $user = Auth::user();
+
+        // Valida la solicitud de carga de archivos
         $validator = Validator::make($request->all(), [
             'attachment' => 'required|file|mimes:pdf,jpg,jpeg,png',
         ]);
@@ -22,45 +25,47 @@ class AttachmentController extends Controller
             return response()->json(['error' => $validator->errors()->first()], 400);
         }
 
-        // Verificar si la tarea existe
+        // Verifica si la tarea existe
         $task = Task::find($id);
         if (!$task) {
             return response()->json(['error' => 'La tarea especificada no existe'], 404);
         }
 
-        // Obtener el archivo cargado
+        // Obtiene el archivo cargado
         $file = $request->file('attachment');
 
-        // Guardar el archivo en el sistema de archivos de tu aplicación
+        // Guarda el archivo en storage>app>attachments
         $filePath = $file->store('attachments');
 
-        // Crear un nuevo registro de adjunto y guardar la ruta del archivo
+        // Crea una nueva instancia de Attachment y guarda el nombre del archivo
+        // TODO: cambiar filePath por fileName en todo el programa y en el front
         $attachment = new Attachment();
         $attachment->path = basename($filePath);
         $attachment->task_id = $id;
+        $attachment->user_id = $user->id;
         $attachment->save();
 
-        // Retornar una respuesta con el adjunto creado
+        // Devuelve el objeto creado
         return $attachment;
     }
 
     public function download($filename)
     {
-        // Obtener la ruta completa del archivo
+        // Ruta completa del archivo
         $filePath = storage_path('app/attachments/' . $filename);
 
-        // Verificar si el archivo existe
+        // Verifica si el archivo existe
         if (!Storage::exists('attachments/' . $filename)) {
             return response()->json(['error' => 'El archivo no existe.'], 404);
         }
 
-        // Obtener la extensión del archivo
+        // Obtiene la extensión del archivo
         $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-        // Determinar el tipo de contenido adecuado según la extensión del archivo
+        // Determina el tipo de contenido adecuado según la extensión del archivo
         $contentType = $this->getContentType($extension);
 
-        // Devolver el archivo como una descarga de archivo normal
+        // Devuelve el archivo como una descarga de archivo normal
         return response()->file($filePath, ['Content-Type' => $contentType]);
     }
 
@@ -76,25 +81,25 @@ class AttachmentController extends Controller
             case 'png':
                 return 'image/png';
             default:
-                return 'application/octet-stream'; // Tipo de contenido genérico para otros tipos de archivo
+                return 'application/octet-stream'; // Tipo de contenido genérico
         }
     }
 
     public function deleteAttachment(string $id)
     {
-        // Obtener el archivo adjunto por su ID
+        // Obtiene attachment por su ID
         $attachment = Attachment::findOrFail($id);
 
-        // Verificar si el usuario autenticado es el propietario del archivo adjunto
+        // Verifica si el usuario autenticado es el propietario del attachment
         if ($attachment->task->user_id !== Auth::id()) {
-            // Si el usuario no es el propietario del archivo adjunto, devolver un error 403 Forbidden
+            // Si el usuario no es el propietario devuelve un 403 Forbidden
             return response()->json(['error' => 'No tienes permiso para eliminar este archivo adjunto.'], 403);
         }
 
-        // Eliminar el archivo adjunto del sistema de archivos
+        // TODO: Elimina el attachment del sistema de archivos
         Storage::delete('attachments/' . $attachment->path);
 
-        // Eliminar el archivo adjunto de la base de datos
+        // Eliminar el attachment(ruta) de la base de datos
         $attachment->delete();
 
         // Devolver una respuesta exitosa

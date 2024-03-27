@@ -14,11 +14,17 @@ class Attachment extends Model
     protected $fillable = [
         'path',
         'task_id',
+        'user_id',
     ];
 
-    // Relación inversa: muchos archivos adjuntos pertenecen a una tarea
     public function task()
     {
         return $this->belongsTo(Task::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id')->select(['id', 'name']);
+    }
+
 }

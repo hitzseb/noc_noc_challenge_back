@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\Mail;
 class UserController extends Controller
 {
     /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        return User::all();
+    }
+
+    /**
      * Crear nuevo usuario
      *
      * @param  Request  $request
@@ -24,10 +32,10 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
         ]);
 
-        // Generar token de 6 dígitos
-        $token = mt_rand(100000, 999999);
+        // Genera token
+        $token = Str::random(12);
 
-        // Crear usuario
+        // Crea usuario
         $user = User::create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
@@ -40,9 +48,10 @@ class UserController extends Controller
             'user_id' => $user->id
         ]);
 
-        // Enviar email de bienvenida con token e instrucciones
+        // Envia email de bienvenida con link para actualizar password
 
-        $content = "Bienvenido $user->name, Por favor establezca su password usando el token: $token";
+        $content = "Bienvenido $user->name. Por favor establezca su password en el siguiente enlace: " .
+           url('http://localhost:8080/update-password?token=' . $token);
 
             Mail::raw($content, function ($message) use ($request) {
                 $message->to($request->email)->subject('Bienvenido');

@@ -17,9 +17,13 @@ class Comment extends Model
         'task_id',
     ];
 
-    // Relación inversa: muchos comentarios pertenecen a una tarea
     public function task()
     {
         return $this->belongsTo(Task::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id')->select(['id', 'name']);
     }
 }

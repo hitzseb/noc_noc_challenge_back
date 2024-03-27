@@ -36,9 +36,9 @@ class PasswordController extends Controller
         }
 
         try {
-            $token = mt_rand(100000, 999999);
+            $token = Str::random(12);
 
-            // Verificar si el usuario ya tiene un token
+            // Verifica si el usuario ya tiene un token
             $existingToken = Token::where('user_id', $user->id)->first();
 
             if ($existingToken) {
@@ -54,8 +54,9 @@ class PasswordController extends Controller
                 ]);
             }
 
-            $content = "Hola $user->name, su token es para reestablecer el password es: $token";
-            // Enviar email con token e instrucciones
+            $content = "Hola $user->name, para restablecer su contraseña, haga clic en el siguiente enlace: " .
+           url('http://localhost:8080/update-password?token=' . $token);
+            // Envia un email con link para actualizar el password
             Mail::raw($content, function ($message) use ($request) {
                 $message->to($request->email)->subject('Contraseña temporal');
             });
@@ -73,35 +74,33 @@ class PasswordController extends Controller
      * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function updatePassword(Request $request) {
+    public function updatePassword(Request $request, $token) {
         $request->validate([
-            'email' => 'required|email',
-            'token' => 'required',
             'password' => 'required|string|min:8',
         ]);
 
-        // Buscar el usuario por su email
+        // Buscar al usuario por su email
         $user = User::where('email', $request->email)->first();
 
-        // Si no se encuentra devolver msj de err
+        // Si no se encuentra devuelve msj de error
         if (!$user) {
             return response()->json(['error' => 'No se encontró ningún usuario con esa dirección de correo electrónico.'], 404);
         }
 
-        // Verificar si el token existe y le pertenece al user
-        $token = Token::where('user_id', $user->id)->where('token', $request->token)->first();
+        // Verifica si el token existe y le pertenece al usuario
+        $tokenModel = Token::where('user_id', $user->id)->where('token', $token)->first();
 
-        // Si el token no es válido devolver msj de error
-        if (!$token) {
+        // Si el token no es válido devuelve msj de error
+        if (!$tokenModel) {
             return response()->json(['error' => 'El token proporcionado no es válido para este usuario.'], 400);
         }
 
-        // Actualizar el password del usuario
+        // Actualiza el password del usuario
         $user->password = bcrypt($request->password);
         $user->save();
 
-        // Eliminar el token de la base de datos
-        $token->delete();
+        // Elimina el token de la base de datos
+        $tokenModel->delete();
 
         return response()->json(['message' => 'Contraseña actualizada con éxito.'], 200);
     }

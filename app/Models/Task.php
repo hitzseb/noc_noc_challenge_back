@@ -24,27 +24,35 @@ class Task extends Model
         'completed_at',
     ];
 
-    // Relación con status
+    // Oculta los campos user_id y status_id en la respuesta
+    protected $hidden = ['user_id', 'status_id'];
+
     public function status()
     {
         return $this->belongsTo(Status::class, 'status_id');
     }
 
-    // Relación con el empleado asignado
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relación con los comentarios de la tarea
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-    // Relación con los archivos adjuntos
     public function attachments()
     {
         return $this->hasMany(Attachment::class);
+    }
+
+    // Mutador para obtener el estado con su id y nombre
+    public function getStatusAttribute($value)
+    {
+        return [
+            'id' => $this->status_id,
+            'status' => $this->status()->exists() ? $this->status->status : null,
+        ];
     }
 }

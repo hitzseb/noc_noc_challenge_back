@@ -8,7 +8,7 @@ use App\Models\Task;
 use Barryvdh\DomPDF\Facade as PDF;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-
+use Carbon\Carbon;
 
 class TaskController extends Controller
 {
@@ -18,7 +18,7 @@ class TaskController extends Controller
     public function userTasks()
     {
         $user = Auth::user();
-        $tasks = $user->tasks()->get();
+        $tasks = $user->tasks()->with('status:id,status', 'user:id,name')->get();
         return $tasks;
     }
 
@@ -27,7 +27,8 @@ class TaskController extends Controller
      */
     public function index()
     {
-        return Task::all();
+        $tasks = Task::with('status:id,status', 'user:id,name')->get();
+        return $tasks;
     }
 
     /**
@@ -43,8 +44,8 @@ class TaskController extends Controller
      */
     public function show(string $id)
     {
-        // Recuperar la tarea con sus archivos adjuntos cargados
-        $task = Task::with(['attachments', 'comments'])->findOrFail($id);
+        // Recupera la task con sus attachments y comments
+        $task = Task::with(['status:id,status','user:id,name','attachments.user', 'comments.user'])->findOrFail($id);
 
         return $task;
     }
@@ -71,17 +72,17 @@ class TaskController extends Controller
 
     public function updateStatus(Request $request, string $id)
     {
-        // Verificar si el usuario autenticado es un super admin
+        // Recupera el user autenticado y la task a editar
         $user = Auth::user();
-
-        // Verificar si la tarea pertenece al usuario
         $task = Task::findOrFail($id);
-        if ($task->user_id !== $user->id) {
+
+        // Verifica que la task eprtenezca al user o que este sea super_admin
+        if ($task->user_id !== $user->id && $user->role !== 'super_admin') {
             // Si la tarea no pertenece al usuario, devolver un error 403 Forbidden
             return response()->json(['error' => 'No tienes permiso para actualizar el estado de esta tarea.'], 403);
         }
 
-        // Actualizar el estado de la tarea
+        // Actualiza el estado de la task
         $task->update(['status_id' => $request->status_id]);
 
         // Si el nuevo estado es "completado", actualiza la fecha de completado
@@ -95,22 +96,34 @@ class TaskController extends Controller
 
     public function generateReport(Request $request)
     {
-        // Filtrar tareas por fecha
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        // Filtra tareas por fecha
+        $startDate = Carbon::createFromFormat('Y-m-d H:i:s', $request->input('start_date'))->startOfDay();
+        $endDate = Carbon::createFromFormat('Y-m-d H:i:s', $request->input('end_date'))->endOfDay();
+
         $tasks = Task::whereBetween('completed_at', [$startDate, $endDate])->get();
 
-        // Preparar datos para el PDF
+        // Formatea las fechas de las tareas para el PDF
+        $tasks->transform(function ($task) {
+            $task->completed_at = Carbon::parse($task->completed_at)->format('d-m-y'); // Formato DD-MM-YY
+            return $task;
+        });
+
+        // Formatea las fechas para el título
+        $formattedStartDate = $startDate->format('d-m-Y'); // Formato DD-MM-YYYY
+        $formattedEndDate = $endDate->format('d-m-Y'); // Formato DD-MM-YYYY
+
+        // Prepara datos para el PDF
         $data = [
             'tasks' => $tasks,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
+            'startDate' => $formattedStartDate,
+            'endDate' => $formattedEndDate,
         ];
 
-        // Generar el PDF a partir de la vista Blade
+        // Genera el PDF a partir de la vista Blade
         $pdf = \PDF::loadView('pdf.tasks', $data);
 
-        // Descargar el PDF
+        // Descarga el PDF
         return $pdf->download('tasks_report.pdf');
     }
+
 }

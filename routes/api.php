@@ -42,10 +42,12 @@ Route::group([
 
 // ruta para que el super admin cree nuevos usuarios
 Route::middleware('require_super_admin')->post('/create-user', [UserController::class, 'create']);
+Route::middleware('auth')->get('/users', [UserController::class, 'index']);
 
 // rutas de reestablecimiento de passwords
 Route::post('forgot-password', [PasswordController::class, 'forgotPassword']);
-Route::post('update-password', [PasswordController::class, 'updatePassword']);
+Route::put('update-password/{token}', [PasswordController::class, 'updatePassword']);
+
 
 // Rutas de status
 Route::get('/status', [StatusController::class, 'index']);

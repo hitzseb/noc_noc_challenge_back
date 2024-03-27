@@ -17,7 +17,6 @@ class Status extends Model
         'status',
     ];
 
-    // Relación con las tasks
     public function tasks()
     {
         return $this->hasMany(Task::class);
